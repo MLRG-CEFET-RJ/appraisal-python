@@ -9,21 +9,21 @@ import numpy as np
 
 class AbstractImputationPlan(ABC):
     """
-        Abstract base class ImputationPlan.
-        All imputation plans needs inherit from this base class.
+    Abstract base class ImputationPlan.
+    All imputation plans needs inherit from this base class.
     """
 
     @abstractmethod
     def strategy(self, csv: Csv, column_name: str):
         """
-            Abstract Strategy
+        Abstract Strategy
         """
         raise NotImplementedError()
 
 
 class Mean(AbstractImputationPlan):
     """
-        Implement a imputation plan strategy.
+    Implement a imputation plan strategy.
     """
 
     def strategy(self, df: DataFrame, column_name: str) -> DataFrame:
@@ -43,31 +43,31 @@ class Mean(AbstractImputationPlan):
 
 class Crowner:
     """
-        Implement the crowner.
+    Implement the crowner.
     """
 
     def __init__(
         self,
-        csv: Csv,
-        column_name: str,
+        input_file: str,
+        output_file: str,
+        attribute: str,
         strategy: AbstractImputationPlan,
         debugger: Union[Logging, Optional[None]] = Logging(),
     ) -> None:
-        self.csv = csv
-        self.column_name = column_name
+        self.input_file = input_file
+        self.attribute = attribute
         self.strategy = strategy
         self.debugger = debugger
         self._result = None
 
     def run(self) -> None:
         """
-            Execute the Cronwer runner.
+        Execute the Cronwer runner.
         """
         df = pd.read_csv(self.csv)
-        df_result = self.strategy.strategy(df, self.column_name)
-        self._result = df_result
+        self._result = self.strategy.strategy(df, self.attribute)
 
-    def save_result(self, name: Optional[str] = None) -> None:
+    def save_result(self, output_file: Optional[str] = None) -> None:
         """_summary_
 
         Args:
@@ -79,17 +79,22 @@ class Crowner:
         if self._result.empty:
             raise Exception("unhandled exception.")
 
-        self._result.to_csv(name)
+        self._result.to_csv(output_file)
 
 
 # Parse arguments
 parser = ArgumentParser()
 parser.add_argument("-i", "--input_file", help="Name of the input file")
 parser.add_argument("-o", "--output_file", help="Name of the output file")
-parser.add_argument("-a", "--attribute",
-                    help="Name of the column to fills in the missing values.")
-parser.add_argument("-p", "--plan", default='mean',
-                    help="imputation plan to be used. The default value of this is mean")
+parser.add_argument(
+    "-a", "--attribute", help="Name of the column to fills in the missing values."
+)
+parser.add_argument(
+    "-p",
+    "--plan",
+    default="mean",
+    help="imputation plan to be used. The default value of this is mean",
+)
 args = vars(parser.parse_args())
 
 
@@ -108,7 +113,7 @@ def crowner(input_file, output_file, column_name, plan):
 
     strategy = None
 
-    if plan == 'mean':
+    if plan == "mean":
         strategy = Mean()
     else:
         raise Exception("")
@@ -121,10 +126,10 @@ def crowner(input_file, output_file, column_name, plan):
 
 
 def main():
-    input_file = args['input_file']
-    output_file = args['output_file']
-    attribute = args['attribute']
-    plan = args['plan']
+    input_file = args["input_file"]
+    output_file = args["output_file"]
+    attribute = args["attribute"]
+    plan = args["plan"]
     crowner(input_file, output_file, attribute, plan)
 
 
